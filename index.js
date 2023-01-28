@@ -91,26 +91,26 @@ const selfCaller = async()=>{
     }
 }
 
-let minutes = 0; // max = 60*4 = 4hours
-let counter = 0;
+let minutes = {value:0}; // max = 60*4 = 4hours
+let counter = {value:0};
 const tiemer = () =>{
     const intervalTimer = setInterval(()=>{
         // keep awake the render app
-        if (counter > 12) {
+        if (counter.value > 12) {
             selfCaller();
-            counter = 0;
+            counter.value = 0;
         }else{
-            counter++;
+            counter.value++;
 
         }
-        console.log("Minutes : ",counter,"  at ",new Date().getMinutes(), " when total :",minutes);
+        console.log("Minutes : ",counter.value,"  at ",new Date().getMinutes(), " when total :",minutes.value);
 
         // call the scrapper to scrap every 4 hours
-        if (minutes > 60*4) {
+        if (minutes.value > 60*4) {
             startScheduleScraping();
-            minutes = 0;  // call the scrapper and make the munite 0
+            minutes.value = 0;  // call the scrapper and make the munite 0
         }else{
-            minutes += 1;  // add 1 minute
+            minutes.value += 1;  // add 1 minute
         }
         // clearInterval(intervalTimer);
     },1000*60)
