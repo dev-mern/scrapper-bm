@@ -98,9 +98,12 @@ const tiemer = () =>{
         // keep awake the render app
         if (counter > 12) {
             selfCaller();
+            counter = 0;
+        }else{
+            counter++;
+
         }
         console.log("Minutes : ",counter,"  at ",new Date().getMinutes(), " when total :",minutes);
-        counter++;
 
         // call the scrapper to scrap every 4 hours
         if (minutes > 60*4) {
