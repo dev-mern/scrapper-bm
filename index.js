@@ -50,6 +50,10 @@ const fakeHadersList = [
     },
 ];
 
+app.get("/",(req,res)=>{
+    res.send("Welcome at Scrapper")
+})
+
 app.get("/scrapping",async(req,res)=>{
     try {
         const urlList = ["https://www.getdroidtips.com"];
@@ -75,6 +79,18 @@ app.listen(port,()=>{
     console.log("Running app ", port);
 })
 
+
+// scheude the task(every 10 minutes) to keep awake the free server
+cron.schedule('*/10 * * * *', () => {
+// cron.schedule('*/1 * * * *', () => {
+    const homeUrl=process.env.BASE_APP_URL;
+    const selfCaller = async()=>{
+        const response = await axios.get(homeUrl);
+        console.log(response.data);
+    }
+    selfCaller()
+    console.log('running a task every minute', new Date().toISOString());
+});
 
 // scheude the task(every 4 hours)
 cron.schedule('0 */4 * * *', () => {
