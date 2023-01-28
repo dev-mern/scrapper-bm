@@ -80,22 +80,46 @@ app.listen(port,()=>{
 })
 
 
-// scheude the task(every 10 minutes) to keep awake the free server
-cron.schedule('*/10 * * * *', () => {
-// cron.schedule('*/1 * * * *', () => {
-    const homeUrl=process.env.BASE_APP_URL;
-    const selfCaller = async()=>{
+// scheude the task(every 12 minutes) to keep awake the free server
+const homeUrl=process.env.BASE_APP_URL;
+const selfCaller = async()=>{
+    try {
         const response = await axios.get(homeUrl);
-        console.log(response.data);
+        console.log(response.data," -:- ",new Date().toISOString());
+    } catch (error) {
+        console.log(error);
     }
-    selfCaller()
-    console.log('running a task every minute', new Date().toISOString());
-});
+}
+
+let minutes = 0; // max = 60*4 = 4hours
+let counter = 0;
+const tiemer = () =>{
+    const intervalTimer = setInterval(()=>{
+        // keep awake the render app
+        if (counter > 12) {
+            selfCaller();
+        }
+        console.log("Minutes : ",counter,"  at ",new Date().getMinutes(), " when total :",minutes);
+        counter++;
+
+        // call the scrapper to scrap every 4 hours
+        if (minutes > 60*4) {
+            startScheduleScraping();
+            minutes = 0;  // call the scrapper and make the munite 0
+        }else{
+            minutes += 1;  // add 1 minute
+        }
+        // clearInterval(intervalTimer);
+    },1000*60)
+}
+
+tiemer();
+
 
 // scheude the task(every 4 hours)
 cron.schedule('0 */4 * * *', () => {
 // cron.schedule('* * * * *', () => {
-    startScheduleScraping();
+    // startScheduleScraping();
     // console.log('running a task every minute', new Date().toISOString());
 });
 
@@ -107,14 +131,14 @@ const startScheduleScraping = async()=>{
 
         // start the scrapper machine
         const scrap_result = await scrapMachine(urlList);
-        // console.log(Buffer.byteLength(JSON.stringify(scrap_result), 'utf8')/1000 ,"kb object size");
+        console.log(Buffer.byteLength(JSON.stringify(scrap_result), 'utf8')/1000 ,"kb object size");
 
 
         // read to file for todays email list and remove the sent emails
         const filePath = path.resolve(__dirname,"./files/storage.json")
         const oldData = JSON.parse(fs.readFileSync(filePath));
         const newFilteredPosts = scrap_result.filter(newEl=>oldData?.find(oldEl => oldEl.blogTitle === newEl.blogTitle)? false:true);
-        // console.log(oldData.length,newFilteredPosts.length,scrap_result.length);
+        console.log(oldData.length,newFilteredPosts.length,scrap_result.length);
 
         if (newFilteredPosts.length > 0) {
             const isEmailSent = await sendEmail(newFilteredPosts);
