@@ -97,13 +97,12 @@ const tiemer = () =>{
     const intervalTimer = setInterval(()=>{
         // keep awake the render app
         if (counter.value > 12) {
+            console.log("Minutes : ",counter.value,"  at ",new Date().getMinutes(), " when total :",minutes.value);
             selfCaller();
             counter.value = 0;
         }else{
             counter.value++;
-
         }
-        console.log("Minutes : ",counter.value,"  at ",new Date().getMinutes(), " when total :",minutes.value);
 
         // call the scrapper to scrap every 4 hours
         if (minutes.value > 60*4) {
@@ -141,7 +140,7 @@ const startScheduleScraping = async()=>{
         const filePath = path.resolve(__dirname,"./files/storage.json")
         const oldData = JSON.parse(fs.readFileSync(filePath));
         const newFilteredPosts = scrap_result.filter(newEl=>oldData?.find(oldEl => oldEl.blogTitle === newEl.blogTitle)? false:true);
-        console.log(oldData.length,newFilteredPosts.length,scrap_result.length);
+        console.log("Old = ",oldData.length,", New Filter = ",newFilteredPosts.length,", Current without filter = ",scrap_result.length);
 
         if (newFilteredPosts.length > 0) {
             const isEmailSent = await sendEmail(newFilteredPosts);
@@ -234,7 +233,7 @@ const webScrapper = (webUrl) =>{
                         const blogTitle = $(el).children(".post-summary__title").text();
                         const blogUrl = $(el).children(".post-summary__title").children('a').attr("href");
                         const time = $(el).children(".post-summary__byline").children(".entry-date").text();
-                        console.log(time);
+                        // console.log(time);
                         if (time) resultData.push({blogTitle,blogUrl,time});
                         
                     })
