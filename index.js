@@ -85,7 +85,7 @@ const homeUrl=process.env.BASE_APP_URL;
 const selfCaller = async()=>{
     try {
         const response = await axios.get(homeUrl);
-        console.log(response.data," -:- ",new Date().toISOString());
+        // console.log(response.data," -:- ",new Date().toISOString());
     } catch (error) {
         console.log(error);
     }
@@ -97,7 +97,7 @@ const tiemer = () =>{
     const intervalTimer = setInterval(()=>{
         // keep awake the render app
         if (counter.value > 12) {
-            console.log("Minutes : ",counter.value,"  at ",new Date().getMinutes(), " when total :",minutes.value);
+            // console.log("Minutes : ",counter.value,"  at ",new Date().getMinutes(), " when total :",minutes.value);
             selfCaller();
             counter.value = 0;
         }else{
@@ -112,7 +112,7 @@ const tiemer = () =>{
             minutes.value += 1;  // add 1 minute
         }
         // clearInterval(intervalTimer);
-    },1000*60)
+    },1000*60)  
 }
 
 tiemer();
