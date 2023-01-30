@@ -4,7 +4,6 @@ const cheerio = require('cheerio');
 require("dotenv").config();
 const axios = require('axios');
 const request = require('request');
-var cron = require('node-cron');
 var fs = require('fs');
 var path = require('path');
 
@@ -124,16 +123,9 @@ const tiemer = () =>{
         // clearInterval(intervalTimer);
     },1000*60)  
 }
-
 tiemer();
 
 
-// scheude the task(every 4 hours)
-cron.schedule('0 */4 * * *', () => {
-// cron.schedule('* * * * *', () => {
-    // startScheduleScraping();
-    // console.log('running a task every minute', new Date().toISOString());
-});
 
 
 const startScheduleScraping = async()=>{
@@ -143,7 +135,8 @@ const startScheduleScraping = async()=>{
 
         // start the scrapper machine
         const scrap_result = await scrapMachine(urlList);
-        console.log(Buffer.byteLength(JSON.stringify(scrap_result), 'utf8')/1000 ,"kb object size");
+        
+        
 
 
         // read to file for todays email list and remove the sent emails
@@ -151,17 +144,20 @@ const startScheduleScraping = async()=>{
         const oldData = JSON.parse(fs.readFileSync(filePath));
         const newFilteredPosts = scrap_result.filter(newEl=>oldData?.find(oldEl => oldEl.blogTitle === newEl.blogTitle)? false:true);
         
+        let file_fize_in_Email= 0;
         if (newFilteredPosts.length > 0) {
+            file_fize_in_Email = Buffer.byteLength(JSON.stringify(newFilteredPosts),"utf-8")/1000;
             const isEmailSent = await sendEmail(newFilteredPosts);
             console.log("isEmailSent : ",isEmailSent);
         }
         
-        const totalDatawithDuplicate = [...oldData,...scrap_result].filter(titleData => titleData.time?.trim() === new Date().toLocaleDateString("en",{year: 'numeric', month: 'long', day: 'numeric' }));
+        const today = new Date().toLocaleDateString("en",{year: 'numeric', month: 'long', day: 'numeric' });
+        const totalDatawithDuplicate = [...oldData,...scrap_result].filter(titleData => titleData.time?.trim() === today);
         const totalDataUnique = [...new Map(totalDatawithDuplicate.map(obj=>[obj.blogTitle,obj])).values()];
         // write to file for todays email list
         fs.writeFileSync(filePath,JSON.stringify(totalDataUnique.length?totalDataUnique:[],null,4));
         
-        console.log("Old = ",oldData.length, ", new_no_filter = ",scrap_result.length,",   New-Filter = ",newFilteredPosts.length,", save_storage = ",totalDataUnique.length);
+        console.log("Old = ",oldData.length, ", new_no_filter = ",scrap_result.length,",   New-Filter = ",newFilteredPosts.length,", old_+_new = ",totalDatawithDuplicate.length,", save_storage = ",totalDataUnique.length,", email_message_size = ",file_fize_in_Email,"kbps");
 
         // res.json({total:scrap_result.length,scrap_result})
     } catch (error) {
@@ -190,6 +186,7 @@ const scrapMachine = async(urls) =>{
                     if (notTodaysPost.length > 0) {
                         isMore = false;
                     }
+
                     if(scrap_result instanceof Array){
                         scrap_result.forEach(titleData=>{
                             if ( titleData.time?.trim() === new Date().toLocaleDateString("en",{year: 'numeric', month: 'long', day: 'numeric' })) {
