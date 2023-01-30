@@ -278,7 +278,7 @@ async function sendEmail(titleInfo){
             user_id: process.env.EMAIL_PUBLIC_KEY_USER_ID,
             accessToken: process.env.EMAIL_PRIVATE_KEY_TOKEN,
             template_params: {
-                'website_name': 'www.koko.vb',
+                'website_name': `www.koko.vb - ${new Date().toISOString().split("T")[0]}`,
                 'to_name': 'Biddrup',
                 'from_name': 'Shuvo',
                 'message': `<div>
