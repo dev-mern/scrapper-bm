@@ -113,8 +113,8 @@ const tiemer = () =>{
             counter.value++;
         }
 
-        // call the scrapper to scrap every 4 hours
-        if (minutes.value > 60*4) {
+        // call the scrapper to scrap every 3 hours
+        if (minutes.value > 60*3) {
             startScheduleScraping();
             minutes.value = 0;  // call the scrapper and make the munite 0
         }else{
@@ -124,7 +124,6 @@ const tiemer = () =>{
     },1000*60)  
 }
 tiemer();
-
 
 
 
@@ -157,7 +156,7 @@ const startScheduleScraping = async()=>{
         // write to file for todays email list
         fs.writeFileSync(filePath,JSON.stringify(totalDataUnique.length?totalDataUnique:[],null,4));
         
-        console.log("Old = ",oldData.length, ", new_no_filter = ",scrap_result.length,",   New-Filter = ",newFilteredPosts.length,", old_+_new = ",totalDatawithDuplicate.length,", save_storage = ",totalDataUnique.length,", email_message_size = ",file_fize_in_Email,"kbps");
+        console.log("Old =",oldData.length, ", new_no_filter =",scrap_result.length,",   New-Filter =",newFilteredPosts.length,", old_+_new =",totalDatawithDuplicate.length,", save_storage =",totalDataUnique.length,", email_size =",file_fize_in_Email,"kbps");
 
         // res.json({total:scrap_result.length,scrap_result})
     } catch (error) {
@@ -275,7 +274,7 @@ async function sendEmail(titleInfo){
             user_id: process.env.EMAIL_PUBLIC_KEY_USER_ID,
             accessToken: process.env.EMAIL_PRIVATE_KEY_TOKEN,
             template_params: {
-                'website_name': `www.koko.vb - ${new Date().toISOString().split("T")[0]}`,
+                'website_name': `www.koko.vb - ${new Date().toISOString().split(".")[0].replace("T"," ")}`,
                 'to_name': 'Biddrup',
                 'from_name': 'Shuvo',
                 'message': `<div>
