@@ -53,6 +53,16 @@ const fakeHadersList = [
 app.get("/",(req,res)=>{
     res.send("Welcome at Scrapper")
 })
+app.get("/store",(req,res)=>{
+    try {
+        const pathOFStore = path.resolve(__dirname,"./files/storage.json");
+        const old_data = JSON.parse(fs.readFileSync(pathOFStore));
+        res.json({total:old_data.length,old_data});
+    } catch (error) {
+        console.log(error);
+        res.json({error:true,message:error.message})
+    }
+})
 
 app.get("/scrapping",async(req,res)=>{
     try {
@@ -140,17 +150,18 @@ const startScheduleScraping = async()=>{
         const filePath = path.resolve(__dirname,"./files/storage.json")
         const oldData = JSON.parse(fs.readFileSync(filePath));
         const newFilteredPosts = scrap_result.filter(newEl=>oldData?.find(oldEl => oldEl.blogTitle === newEl.blogTitle)? false:true);
-        console.log("Old = ",oldData.length,", New Filter = ",newFilteredPosts.length,", Current without filter = ",scrap_result.length);
-
+        
         if (newFilteredPosts.length > 0) {
             const isEmailSent = await sendEmail(newFilteredPosts);
             console.log("isEmailSent : ",isEmailSent);
         }
-
+        
         const totalDatawithDuplicate = [...oldData,...scrap_result].filter(titleData => titleData.time?.trim() === new Date().toLocaleDateString("en",{year: 'numeric', month: 'long', day: 'numeric' }));
         const totalDataUnique = [...new Map(totalDatawithDuplicate.map(obj=>[obj.blogTitle,obj])).values()];
         // write to file for todays email list
         fs.writeFileSync(filePath,JSON.stringify(totalDataUnique.length?totalDataUnique:[],null,4));
+        
+        console.log("Old = ",oldData.length, ", new_no_filter = ",scrap_result.length,",   New-Filter = ",newFilteredPosts.length,", save_storage = ",totalDataUnique.length);
 
         // res.json({total:scrap_result.length,scrap_result})
     } catch (error) {
@@ -178,7 +189,8 @@ const scrapMachine = async(urls) =>{
                     const notTodaysPost = scrap_result.filter(titleData => titleData.time?.trim() !== new Date().toLocaleDateString("en",{year: 'numeric', month: 'long', day: 'numeric' }) );
                     if (notTodaysPost.length > 0) {
                         isMore = false;
-                    }else{
+                    }
+                    if(scrap_result instanceof Array){
                         scrap_result.forEach(titleData=>{
                             if ( titleData.time?.trim() === new Date().toLocaleDateString("en",{year: 'numeric', month: 'long', day: 'numeric' })) {
                                 tempTitleList.push(titleData);
@@ -188,7 +200,6 @@ const scrapMachine = async(urls) =>{
                         pageNumber = pageNumber + 1;
                     }
                 }
-                
                 return tempTitleList;
 
             case 'next web site':
@@ -237,7 +248,7 @@ const webScrapper = (webUrl) =>{
                         if (time) resultData.push({blogTitle,blogUrl,time});
                         
                     })
-                    
+                    // console.log(resultData);
                     resolve(resultData);
                 }else{
                     reject(response)
