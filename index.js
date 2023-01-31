@@ -114,7 +114,8 @@ const tiemer = () =>{
         }
 
         // call the scrapper to scrap every 3 hours
-        if (minutes.value > 60*3) {
+        const lag_time = process.env.LAG_TIME_MINUTES ? parseInt(process.env.LAG_TIME_MINUTES):10;
+        if (minutes.value >= (lag_time || 60*4) ) { // six * hours number
             startScheduleScraping();
             minutes.value = 0;  // call the scrapper and make the munite 0
         }else{
@@ -146,8 +147,8 @@ const startScheduleScraping = async()=>{
         let file_fize_in_Email= 0;
         if (newFilteredPosts.length > 0) {
             file_fize_in_Email = Buffer.byteLength(JSON.stringify(newFilteredPosts),"utf-8")/1000;
-            const isEmailSent = await sendEmail(newFilteredPosts);
-            console.log("isEmailSent : ",isEmailSent);
+            // const isEmailSent = await sendEmail(newFilteredPosts);
+            // console.log("isEmailSent : ",isEmailSent);
         }
         
         const today = new Date().toLocaleDateString("en",{year: 'numeric', month: 'long', day: 'numeric' });
