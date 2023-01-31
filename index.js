@@ -126,7 +126,8 @@ const tiemer = () =>{
 }
 tiemer();
 
-
+const today = new Date().toLocaleDateString("en",{year: 'numeric', month: 'long', day: 'numeric' });
+const makeUniqueArray = (arr) => [...new Map(arr.map(el=>[el.blogUrl,el])).values()];
 
 const startScheduleScraping = async()=>{
     try {
@@ -137,29 +138,28 @@ const startScheduleScraping = async()=>{
         const scrap_result = await scrapMachine(urlList);
         
         
-
-
         // read to file for todays email list and remove the sent emails
         const filePath = path.resolve(__dirname,"./files/storage.json")
         const oldData = JSON.parse(fs.readFileSync(filePath));
-        const newFilteredPosts = scrap_result.filter(newEl=>oldData?.find(oldEl => oldEl.blogTitle === newEl.blogTitle)? false:true);
+        const newFilteredPosts = scrap_result.filter(newEl=>oldData?.find(oldEl => oldEl.blogUrl === newEl.blogUrl)? false:true);
+        const newFilterUnique = makeUniqueArray(newFilteredPosts);
         
         let file_fize_in_Email= 0;
         if (newFilteredPosts.length > 0) {
-            file_fize_in_Email = Buffer.byteLength(JSON.stringify(newFilteredPosts),"utf-8")/1000;
-            const isEmailSent = await sendEmail(newFilteredPosts);
+            file_fize_in_Email = Buffer.byteLength(JSON.stringify(newFilterUnique),"utf-8")/1000;
+            const isEmailSent = await sendEmail(newFilterUnique);
             console.log("isEmailSent : ",isEmailSent);
         }
         
-        const today = new Date().toLocaleDateString("en",{year: 'numeric', month: 'long', day: 'numeric' });
+        
         const totalDatawithDuplicate = [...oldData,...scrap_result].filter(titleData => titleData.time?.trim() === today);
-        const totalDataUnique = [...new Map(totalDatawithDuplicate.map(obj=>[obj.blogTitle,obj])).values()];
+        // const totalDataUnique = [...new Map(totalDatawithDuplicate.map(obj=>[obj.blogTitle,obj])).values()];
+        const totalDataUnique = makeUniqueArray(totalDatawithDuplicate);
         // write to file for todays email list
         fs.writeFileSync(filePath,JSON.stringify(totalDataUnique.length?totalDataUnique:[],null,4));
         
-        console.log("Old =",oldData.length, ", new_no_filter =",scrap_result.length,",   New-Filter =",newFilteredPosts.length,", old_+_new =",totalDatawithDuplicate.length,", save_storage =",totalDataUnique.length,", email_size =",file_fize_in_Email,"kbps");
-
-        // res.json({total:scrap_result.length,scrap_result})
+        console.log("Old =",oldData.length, ", new_total =",scrap_result.length,",   New-Filter =",newFilterUnique.length,", old_+_new =",totalDatawithDuplicate.length,", save_store =",totalDataUnique.length,", size =",file_fize_in_Email,"kbps");
+        // end
     } catch (error) {
         console.log(error);
     }
@@ -182,14 +182,14 @@ const scrapMachine = async(urls) =>{
                 const tempTitleList = [];
                 while(isMore){
                     const scrap_result = await webScrapper(paginationUrl);
-                    const notTodaysPost = scrap_result.filter(titleData => titleData.time?.trim() !== new Date().toLocaleDateString("en",{year: 'numeric', month: 'long', day: 'numeric' }) );
+                    const notTodaysPost = scrap_result.filter(titleData => titleData.time?.trim() !== today );
                     if (notTodaysPost.length > 0) {
                         isMore = false;
                     }
 
                     if(scrap_result instanceof Array){
                         scrap_result.forEach(titleData=>{
-                            if ( titleData.time?.trim() === new Date().toLocaleDateString("en",{year: 'numeric', month: 'long', day: 'numeric' })) {
+                            if ( titleData.time?.trim() === today) {
                                 tempTitleList.push(titleData);
                             }
                         })
@@ -275,7 +275,7 @@ async function sendEmail(titleInfo){
             user_id: process.env.EMAIL_PUBLIC_KEY_USER_ID,
             accessToken: process.env.EMAIL_PRIVATE_KEY_TOKEN,
             template_params: {
-                'website_name': `www.koko.vb - ${new Date().toISOString().split(".")[0].replace("T"," ")}`,
+                'subject_title': `${new Date().toISOString().split(".")[0].replace("T"," ")} : ${titleInfo.length} New Blogs Has Been Published`,
                 'to_name': 'Biddrup',
                 'from_name': 'Shuvo',
                 'message': `<div>
