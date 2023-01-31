@@ -147,8 +147,8 @@ const startScheduleScraping = async()=>{
         let file_fize_in_Email= 0;
         if (newFilteredPosts.length > 0) {
             file_fize_in_Email = Buffer.byteLength(JSON.stringify(newFilteredPosts),"utf-8")/1000;
-            // const isEmailSent = await sendEmail(newFilteredPosts);
-            // console.log("isEmailSent : ",isEmailSent);
+            const isEmailSent = await sendEmail(newFilteredPosts);
+            console.log("isEmailSent : ",isEmailSent);
         }
         
         const today = new Date().toLocaleDateString("en",{year: 'numeric', month: 'long', day: 'numeric' });
