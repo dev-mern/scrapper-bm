@@ -145,10 +145,11 @@ const startScheduleScraping = async()=>{
         const newFilterUnique = makeUniqueArray(newFilteredPosts);
         
         let file_fize_in_Email= 0;
+        let isEmailSent = false;
         if (newFilteredPosts.length > 0) {
             file_fize_in_Email = Buffer.byteLength(JSON.stringify(newFilterUnique),"utf-8")/1000;
-            const isEmailSent = await sendEmail(newFilterUnique);
-            console.log("isEmailSent : ",isEmailSent);
+            isEmailSent = await sendEmail(newFilterUnique);
+            // console.log("isEmailSent : ",isEmailSent);
         }
         
         
@@ -158,7 +159,7 @@ const startScheduleScraping = async()=>{
         // write to file for todays email list
         fs.writeFileSync(filePath,JSON.stringify(totalDataUnique.length?totalDataUnique:[],null,4));
         
-        console.log("Old =",oldData.length, ", new_total =",scrap_result.length,",   New-Filter =",newFilterUnique.length,", old_+_new =",totalDatawithDuplicate.length,", save_store =",totalDataUnique.length,", size =",file_fize_in_Email,"kbps");
+        console.log(`${isEmailSent} Old = ${oldData.length}, new = ${scrap_result.length}, filter = ${newFilterUnique.length}, old_+_new = ${totalDatawithDuplicate.length}, save_store = ${totalDataUnique.length}, size = ${file_fize_in_Email}kbps`);
         // end
     } catch (error) {
         console.log(error);
