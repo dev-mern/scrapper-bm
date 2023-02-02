@@ -43,8 +43,8 @@ async function sendEmail(titleInfo){
         }
         
         const postUrl = 'https://api.emailjs.com/api/v1.0/email/send';
-        // const {error, data} = await axios.post(postUrl,emailData);
-    //    return data === 'OK' ? true : false;
+        const {error, data} = await axios.post(postUrl,emailData);
+        return data === 'OK' ? true : false;
         
     } catch (error) {
         console.log(error);
